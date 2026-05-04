@@ -1,36 +1,61 @@
 using SmartAIPropertyCitizen.Api.Core.Interfaces;
 using SmartAIPropertyCitizen.Api.Core.Domain;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace SmartAIPropertyCitizen.Api.Application.Services
 {
     public class SmartAiService : ISmartAiService
     {
-        private readonly ISqlRepository _sqlRepository;
+        private readonly IPropertyTaxService _propertyTaxService;
         private readonly IOtpService _otpService;
         private readonly IConfiguration _config;
 
         private readonly Dictionary<string, Dictionary<string, string>> i18n = new()
         {
-            ["en"] = new() { ["dem"] = "Here are your demand details:", ["rec"] = "Here is the list of your previous receipts:", ["pay"] = "You can pay your taxes online here:", ["not"] = "You can download your latest tax notice here:", ["login"] = "Please verify your mobile number first.", ["notfound"] = "No property records found.", ["error"] = "Something went wrong. Please try again." },
-            ["mr"] = new() { ["dem"] = "येथे आपल्या मागणीचा तपशील आहे:", ["rec"] = "येथे आपल्या मागील पावत्यांची यादी आहे:", ["pay"] = "आपण खालील लिंकवर क्लिक करून ऑनलाइन पेमेंट करू शकता:", ["not"] = "आपण खालील लिंकवरून नोटीस डाउनलोड करू शकता:", ["login"] = "कृपया आधी आपला मोबाईल नंबर पडताळून पहा.", ["notfound"] = "कोणतीही मालमत्ता नोंद सापडली नाही.", ["error"] = "काहीतरी चुकले आहे. कृपया पुन्हा प्रयत्न करा." },
-            ["hi"] = new() { ["dem"] = "यहाँ आपकी मांग का विवरण है:", ["rec"] = "यहाँ आपकी पिछली रसीदों की सूची है:", ["pay"] = "आप नीचे दिए गए लिंक पर क्लिक करके ऑनलाइन भुगतान कर सकते हैं:", ["not"] = "आप नीचे दिए गए लिंक से नोटिस डाउनलोड कर सकते हैं:", ["login"] = "कृपया पहले अपना मोबाइल नंबर सत्यापित करें।", ["notfound"] = "कोई संपत्ति रिकॉर्ड नहीं मिला।", ["error"] = "कुछ गलत हो गया। कृपया पुन: प्रयास करें।" }
+            ["mr"] = new() {
+                ["dem"] = "येथे आपल्या मागणीचा तपशील आहे:",
+                ["rec"] = "येथे आपल्या मागील पावत्यांची यादी आहे:",
+                ["pay"] = "आपण खालील लिंकवर क्लिक करून ऑनलाइन पेमेंट करू शकता:",
+                ["not"] = "आपण खालील लिंकवरून नोटीस डाउनलोड करू शकता:",
+                ["error"] = "क्षमस्व, मी तुम्हाला आज अकोला मालमत्ता कराबाबत कशी मदत करू शकतो?",
+                ["login"] = "कृपया प्रथम लॉगइन करा.",
+                ["notfound"] = "कोणतीही मालमत्ता नोंद सापडली नाही."
+            },
+            ["hi"] = new() {
+                ["dem"] = "यहाँ आपकी मांग का विवरण है:",
+                ["rec"] = "यहाँ आपकी पिछली रसीदों की सूची है:",
+                ["pay"] = "आप नीचे दिए गए लिंक पर क्लिक करके ऑनलाइन भुगतान कर सकते हैं:",
+                ["not"] = "आप नीचे दिए गए लिंक से नोटिस डाउनलोड कर सकते हैं:",
+                ["error"] = "क्षमा करें, मैं आपकी अकोला संपत्ति कर में कैसे सहायता कर सकता हूँ?",
+                ["login"] = "कृपया पहले लॉगिन करें।",
+                ["notfound"] = "कोई संपत्ति रिकॉर्ड नहीं मिला।"
+            },
+            ["en"] = new() {
+                ["dem"] = "Here are your demand details:",
+                ["rec"] = "Here is the list of your previous receipts:",
+                ["pay"] = "You can make an online payment by clicking the link below:",
+                ["not"] = "You can download the notice from the link below:",
+                ["error"] = "How can I help you with your Akola Property Tax today?",
+                ["login"] = "Please login first.",
+                ["notfound"] = "No property records found."
+            }
         };
 
-        public SmartAiService(ISqlRepository sqlRepository, IOtpService otpService, IConfiguration config)
+        public SmartAiService(IPropertyTaxService propertyTaxService, IOtpService otpService, IConfiguration config)
         {
-            _sqlRepository = sqlRepository;
+            _propertyTaxService = propertyTaxService;
             _otpService = otpService;
             _config = config;
         }
 
         public async Task<ChatResponse> ProcessChatAsync(ChatRequest request)
         {
-            string l = request.Language?.ToLower() ?? "mr";
+            var l = request.Language?.ToLower() ?? "mr";
             if (!i18n.ContainsKey(l)) l = "mr";
 
             // 1. Verify Session
-            if (!Guid.TryParse(request.SessionId, out Guid guidSessionId))
+            if (string.IsNullOrEmpty(request.SessionId) || !Guid.TryParse(request.SessionId, out Guid guidSessionId))
                 return new ChatResponse { ResponseText = i18n[l]["login"] };
 
             var session = await _otpService.GetSessionAsync(guidSessionId);
@@ -64,17 +89,27 @@ Categorize their intent into one of the following:
 Respond strictly in valid JSON format:
 {{
   ""intent"": ""DEMAND|RECEIPT|PAYMENT|NOTICE|GENERAL"",
-  ""reply"": ""A short, polite conversational reply in {l} acknowledging the request.""
+  ""reply"": ""If GENERAL, provide a helpful polite response in {l}. Otherwise leave empty.""
 }}";
 
-                var completion = await chatClient.CompleteChatAsync(new OpenAI.Chat.ChatMessage[] {
+                var completion = await chatClient.CompleteChatAsync(new OpenAI.Chat.ChatMessage[]
+                {
                     OpenAI.Chat.ChatMessage.CreateSystemMessage(systemPrompt),
-                    OpenAI.Chat.ChatMessage.CreateUserMessage(request.Message)
+                    OpenAI.Chat.ChatMessage.CreateUserMessage(message)
                 });
 
-                var aiResponse = JsonSerializer.Deserialize<JsonElement>(completion.Value.Content[0].Text);
-                intent = aiResponse.GetProperty("intent").GetString()?.ToUpper() ?? "GENERAL";
-                aiReply = aiResponse.GetProperty("reply").GetString() ?? "";
+                string jsonContent = completion.Value.Content[0].Text.Trim();
+                
+                // Remove markdown if present
+                if (jsonContent.StartsWith("```"))
+                {
+                    var match = Regex.Match(jsonContent, @"```(?:json)?\s*(.*?)\s*```", RegexOptions.Singleline);
+                    if (match.Success) jsonContent = match.Groups[1].Value;
+                }
+
+                using var aiDoc = JsonDocument.Parse(jsonContent);
+                intent = aiDoc.RootElement.GetProperty("intent").GetString()?.ToUpper() ?? "GENERAL";
+                aiReply = aiDoc.RootElement.GetProperty("reply").GetString() ?? "";
             }
             catch
             {
@@ -91,14 +126,14 @@ Respond strictly in valid JSON format:
             switch (intent)
             {
                 case "DEMAND":
-                    var demands = await _sqlRepository.ExecuteStoredProcedureAsync<dynamic>("dbo.Rpt_OwnerHeadWiseTaxDetails", new { OwnerID = ownerId });
+                    var demands = await _propertyTaxService.GetHeadwiseTaxDetailsAsync(ownerId);
                     response.Data = demands;
                     response.ResponseText = i18n[l]["dem"];
                     if (!demands.Any()) response.ResponseText = i18n[l]["notfound"];
                     break;
 
                 case "RECEIPT":
-                    var receipts = await _sqlRepository.ExecuteStoredProcedureAsync<dynamic>("dbo.Rpt_OwnerReceiptDetails", new { OwnerID = ownerId });
+                    var receipts = await _propertyTaxService.GetPreviousReceiptsAsync(ownerId);
                     response.Data = receipts;
                     response.ResponseText = i18n[l]["rec"];
                     if (!receipts.Any()) response.ResponseText = i18n[l]["notfound"];
@@ -117,7 +152,7 @@ Respond strictly in valid JSON format:
                 default:
                     if (string.IsNullOrEmpty(aiReply))
                     {
-                        response.ResponseText = l == "en" ? "How can I help you with your Akola Property Tax today?" : "मी तुम्हाला आज अकोला मालमत्ता कराबाबत कशी मदत करू शकतो?";
+                        response.ResponseText = i18n[l]["error"];
                     }
                     break;
             }
