@@ -69,7 +69,8 @@ export default function SmartAIPage() {
       const res = await citizenApi.sendOtp(prop.ownerId, prop.propertyNo);
       setSessionId(res.sessionId);
       setStep('otp');
-    } catch (e) {
+    } catch (e: any) {
+      alert("Error: " + e.message);
       console.error(e);
     } finally {
       setIsLoading(false);
