@@ -141,12 +141,12 @@ Respond strictly in valid JSON format:
 
                 case "PAYMENT":
                     response.PaymentUrl = $"https://akolamc.in/onlinepayment?UniqID={session.UpicNo}";
-                    response.ResponseText = i18n[l]["pay"] + " " + response.PaymentUrl;
+                    response.ResponseText = i18n[l]["pay"];
                     break;
                 
                 case "NOTICE":
                     response.DownloadUrl = $"https://akolamc.in/Download/Index?B={session.UpicNo}";
-                    response.ResponseText = i18n[l]["not"] + " " + response.DownloadUrl;
+                    response.ResponseText = i18n[l]["not"];
                     break;
 
                 default:
