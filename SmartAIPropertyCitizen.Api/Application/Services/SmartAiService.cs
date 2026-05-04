@@ -1,6 +1,7 @@
 using SmartAIPropertyCitizen.Api.Core.Interfaces;
-using SmartAIPropertyCitizen.Api.Core.Models;
+using SmartAIPropertyCitizen.Api.Core.Domain;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace SmartAIPropertyCitizen.Api.Application.Services
 {
@@ -9,13 +10,6 @@ namespace SmartAIPropertyCitizen.Api.Application.Services
         private readonly ISqlRepository _sqlRepository;
         private readonly IOtpService _otpService;
         private readonly IConfiguration _config;
-
-        private readonly Dictionary<string, Dictionary<string, string>> i18n = new()
-        {
-            ["en"] = new() { ["login"] = "Please verify your mobile number first.", ["notfound"] = "No property records found.", ["error"] = "Something went wrong. Please try again." },
-            ["mr"] = new() { ["login"] = "कृपया आधी आपला मोबाईल नंबर पडताळून पहा.", ["notfound"] = "कोणतीही मालमत्ता नोंद सापडली नाही.", ["error"] = "काहीतरी चुकले आहे. कृपया पुन्हा प्रयत्न करा." },
-            ["hi"] = new() { ["login"] = "कृपया पहले अपना मोबाइल नंबर सत्यापित करें।", ["notfound"] = "कोई संपत्ति रिकॉर्ड नहीं मिला।", ["error"] = "कुछ गलत हो गया। कृपया पुन: प्रयास करें।" }
-        };
 
         public SmartAiService(ISqlRepository sqlRepository, IOtpService otpService, IConfiguration config)
         {
@@ -26,11 +20,12 @@ namespace SmartAIPropertyCitizen.Api.Application.Services
 
         public async Task<ChatResponse> ProcessChatAsync(ChatRequest request)
         {
-            string l = request.Language?.ToLower() ?? "en";
-            if (!i18n.ContainsKey(l)) l = "en";
+            var l = request.Language?.ToLower() ?? "mr";
+            var i18n = GetI18nDictionary();
+            if (!i18n.ContainsKey(l)) l = "mr";
 
             // 1. Verify Session
-            if (!Guid.TryParse(request.SessionId, out Guid guidSessionId))
+            if (string.IsNullOrEmpty(request.SessionId) || !Guid.TryParse(request.SessionId, out Guid guidSessionId))
                 return new ChatResponse { ResponseText = i18n[l]["login"] };
 
             var session = await _otpService.GetSessionAsync(guidSessionId);
@@ -64,63 +59,109 @@ Categorize their intent into one of the following:
 Respond strictly in valid JSON format:
 {{
   ""intent"": ""DEMAND|RECEIPT|PAYMENT|NOTICE|GENERAL"",
-  ""reply"": ""A short, polite conversational reply in {l} acknowledging the request.""
+  ""reply"": ""If GENERAL, provide a helpful polite response in {l}. Otherwise leave empty.""
 }}";
 
-                var completion = await chatClient.CompleteChatAsync(new[] {
-                    OpenAI.Chat.ChatMessage.CreateSystemMessage(systemPrompt),
-                    OpenAI.Chat.ChatMessage.CreateUserMessage(request.Message)
+                var completion = await chatClient.CompleteChatAsync(new OpenAI.Chat.ChatMessage[]
+                {
+                    new OpenAI.Chat.SystemChatMessage(systemPrompt),
+                    new OpenAI.Chat.UserChatMessage(message)
                 });
 
-                var aiResponse = JsonSerializer.Deserialize<JsonElement>(completion.Value.Content[0].Text);
-                intent = aiResponse.GetProperty("intent").GetString() ?? "GENERAL";
-                aiReply = aiResponse.GetProperty("reply").GetString() ?? "";
+                string jsonContent = completion.Value.Content[0].Text.Trim();
+                
+                // Remove markdown formatting if present
+                if (jsonContent.StartsWith("```"))
+                {
+                    var match = Regex.Match(jsonContent, @"```(?:json)?\s*(.*?)\s*```", RegexOptions.Singleline);
+                    if (match.Success) jsonContent = match.Groups[1].Value;
+                }
+
+                using var aiDoc = JsonDocument.Parse(jsonContent);
+                intent = aiDoc.RootElement.GetProperty("intent").GetString()?.ToUpper() ?? "GENERAL";
+                aiReply = aiDoc.RootElement.GetProperty("reply").GetString() ?? "";
             }
             catch
             {
-                // Fallback to basic keyword matching if AI fails
-                if (message.Contains("demand") || message.Contains("balance") || message.Contains("tax") || message.Contains("किती")) intent = "DEMAND";
-                else if (message.Contains("receipt") || message.Contains("पावती")) intent = "RECEIPT";
-                else if (message.Contains("pay") || message.Contains("payment") || message.Contains("भरायचे")) intent = "PAYMENT";
-                else if (message.Contains("notice") || message.Contains("सूचना")) intent = "NOTICE";
+                // Fallback to keyword matching if AI fails
+                if (message.Contains("demand") || message.Contains("balance") || message.Contains("मागणी") || message.Contains("किती")) intent = "DEMAND";
+                else if (message.Contains("receipt") || message.Contains("पावती") || message.Contains("रसीद")) intent = "RECEIPT";
+                else if (message.Contains("pay") || message.Contains("payment") || message.Contains("भरणा") || message.Contains("भरायचे")) intent = "PAYMENT";
+                else if (message.Contains("notice") || message.Contains("सूचना") || message.Contains("नोटीस")) intent = "NOTICE";
             }
 
-            // 3. Execute Intent
-            var response = new ChatResponse { Intent = intent, ResponseText = aiReply };
+            // 3. Logic Execution
+            var response = new ChatResponse { ResponseText = aiReply, SessionId = request.SessionId };
 
             switch (intent)
             {
                 case "DEMAND":
                     var demands = await _sqlRepository.ExecuteStoredProcedureAsync<dynamic>("dbo.Rpt_OwnerHeadWiseTaxDetails", new { OwnerID = ownerId });
                     response.Data = demands;
+                    response.ResponseText = i18n[l]["dem"];
                     if (!demands.Any()) response.ResponseText = i18n[l]["notfound"];
                     break;
 
                 case "RECEIPT":
                     var receipts = await _sqlRepository.ExecuteStoredProcedureAsync<dynamic>("dbo.Rpt_OwnerReceiptDetails", new { OwnerID = ownerId });
                     response.Data = receipts;
+                    response.ResponseText = i18n[l]["rec"];
                     if (!receipts.Any()) response.ResponseText = i18n[l]["notfound"];
                     break;
 
                 case "PAYMENT":
                     response.PaymentUrl = $"https://akolamc.in/onlinepayment?UniqID={session.UpicNo}";
-                    response.ResponseText += (l == "en" ? $" You can pay your taxes online here: {response.PaymentUrl}" : $" आपण आपला कर येथे ऑनलाइन भरू शकता: {response.PaymentUrl}");
+                    response.ResponseText = i18n[l]["pay"] + " " + response.PaymentUrl;
                     break;
                 
                 case "NOTICE":
                     response.DownloadUrl = $"https://akolamc.in/Download/Index?B={session.UpicNo}";
-                    response.ResponseText += (l == "en" ? $" You can download your latest tax notice here: {response.DownloadUrl}" : $" आपण आपली ताजी कर सूचना येथे डाउनलोड करू शकता: {response.DownloadUrl}");
+                    response.ResponseText = i18n[l]["not"] + " " + response.DownloadUrl;
                     break;
 
                 default:
                     if (string.IsNullOrEmpty(aiReply))
                     {
-                        response.ResponseText = l == "en" ? "How can I help you with your Akola Property Tax today?" : "मी तुम्हाला आज अकोला मालमत्ता कराबाबत कशी मदत करू शकतो?";
+                        response.ResponseText = i18n[l]["error"];
                     }
                     break;
             }
 
             return response;
+        }
+
+        private Dictionary<string, Dictionary<string, string>> GetI18nDictionary()
+        {
+            return new Dictionary<string, Dictionary<string, string>>
+            {
+                ["mr"] = new() {
+                    ["dem"] = "येथे आपल्या मागणीचा तपशील आहे:",
+                    ["rec"] = "येथे आपल्या मागील पावत्यांची यादी आहे:",
+                    ["pay"] = "आपण खालील लिंकवर क्लिक करून ऑनलाइन पेमेंट करू शकता:",
+                    ["not"] = "आपण खालील लिंकवरून नोटीस डाउनलोड करू शकता:",
+                    ["error"] = "क्षमस्व, मी तुम्हाला आज अकोला मालमत्ता कराबाबत कशी मदत करू शकतो?",
+                    ["login"] = "कृपया प्रथम लॉगइन करा.",
+                    ["notfound"] = "कोणतीही मालमत्ता नोंद सापडली नाही."
+                },
+                ["hi"] = new() {
+                    ["dem"] = "यहाँ आपकी मांग का विवरण है:",
+                    ["rec"] = "यहाँ आपकी पिछली रसीदों की सूची है:",
+                    ["pay"] = "आप नीचे दिए गए लिंक पर क्लिक करके ऑनलाइन भुगतान कर सकते हैं:",
+                    ["not"] = "आप नीचे दिए गए लिंक से नोटिस डाउनलोड कर सकते हैं:",
+                    ["error"] = "क्षमा करें, मैं आपकी अकोला संपत्ति कर में कैसे सहायता कर सकता हूँ?",
+                    ["login"] = "कृपया पहले लॉगिन करें।",
+                    ["notfound"] = "कोई संपत्ति रिकॉर्ड नहीं मिला।"
+                },
+                ["en"] = new() {
+                    ["dem"] = "Here are your demand details:",
+                    ["rec"] = "Here is the list of your previous receipts:",
+                    ["pay"] = "You can make an online payment by clicking the link below:",
+                    ["not"] = "You can download the notice from the link below:",
+                    ["error"] = "How can I help you with your Akola Property Tax today?",
+                    ["login"] = "Please login first.",
+                    ["notfound"] = "No property records found."
+                }
+            };
         }
     }
 }
