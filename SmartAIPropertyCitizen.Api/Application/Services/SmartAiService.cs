@@ -103,12 +103,13 @@ Respond strictly in valid JSON format:
                     break;
 
                 case "PAYMENT":
-                    response.ResponseText += (l == "en" ? " You can pay your taxes online at https://amcakola.in" : " आपण आपले कर https://amcakola.in वर ऑनलाइन भरू शकता");
+                    response.PaymentUrl = $"https://akolamc.in/onlinepayment?UniqID={session.UpicNo}";
+                    response.ResponseText += (l == "en" ? $" You can pay your taxes online here: {response.PaymentUrl}" : $" आपण आपला कर येथे ऑनलाइन भरू शकता: {response.PaymentUrl}");
                     break;
                 
                 case "NOTICE":
-                    // Future: Generate PDF link
-                    response.ResponseText += (l == "en" ? " Your latest tax notice is being generated. Please check back in a moment." : " तुमची ताजी कर सूचना तयार केली जात आहे. कृपया थोड्या वेळाने पुन्हा तपासा.");
+                    response.DownloadUrl = $"https://akolamc.in/Download/Index?B={session.UpicNo}";
+                    response.ResponseText += (l == "en" ? $" You can download your latest tax notice here: {response.DownloadUrl}" : $" आपण आपली ताजी कर सूचना येथे डाउनलोड करू शकता: {response.DownloadUrl}");
                     break;
 
                 default:
