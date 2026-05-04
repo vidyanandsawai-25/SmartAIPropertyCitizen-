@@ -1,5 +1,5 @@
 using Dapper;
-using Microsoft.Data.SqlClient;
+using System.Data.SqlClient;
 using System.Data;
 using SmartAIPropertyCitizen.Api.Core.Interfaces;
 
