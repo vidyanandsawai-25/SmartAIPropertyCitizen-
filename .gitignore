@@ -1,0 +1,9 @@
+node_modules/
+.next/
+out/
+bin/
+obj/
+IIS_Publish/
+IIS_Publish_SelfContained/
+.env.local
+.DS_Store
