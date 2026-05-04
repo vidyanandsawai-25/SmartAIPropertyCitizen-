@@ -42,6 +42,18 @@ export default function SmartAIPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
+  // Auto-suggest search effect
+  useEffect(() => {
+    if (step === 'search' && searchInput.length >= 3) {
+      const timer = setTimeout(() => {
+        handleSearch();
+      }, 500);
+      return () => clearTimeout(timer);
+    } else if (searchInput.length === 0) {
+      setSearchResults([]);
+    }
+  }, [searchInput, step]);
+
   if (!mounted) return null;
 
   const handleLanguageSelect = (l: Language) => {
