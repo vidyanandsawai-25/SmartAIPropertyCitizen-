@@ -29,8 +29,8 @@ export const citizenApi = {
     method: 'POST',
     body: JSON.stringify({ sessionId, otp }),
   }),
-  chat: (message: string, sessionId: string, language: string) => apiFetch('/smartai/chat', {
+  chat: (message: string, sessionId: string, language: string, role: string) => apiFetch('/smartai/chat', {
     method: 'POST',
-    body: JSON.stringify({ message, sessionId, language }),
+    body: JSON.stringify({ message, sessionId, language, role }),
   }),
 };

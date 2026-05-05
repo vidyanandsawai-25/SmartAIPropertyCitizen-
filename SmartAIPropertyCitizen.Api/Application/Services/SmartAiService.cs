@@ -67,6 +67,7 @@ namespace SmartAIPropertyCitizen.Api.Application.Services
 
             int ownerId = session.OwnerId;
             string message = request.Message.ToLower();
+            string userRole = request.Role?.ToUpper() ?? "CITIZEN";
 
             // 2. OpenAI Intent Detection
             string intent = "GENERAL";
@@ -79,21 +80,28 @@ namespace SmartAIPropertyCitizen.Api.Application.Services
 
                 var chatClient = new OpenAI.Chat.ChatClient(model, apiKey);
 
+                string roleSpecificInstructions = userRole == "OFFICER" 
+                    ? "You are in OFFICER/ADMIN mode. You can perform data analysis, show collection summaries, and answer administrative questions."
+                    : "You are in CITIZEN mode. Help them with their property tax details, receipts, and payments.";
+
                 string systemPrompt = $@"
 You are SmartAI, an official property tax assistant for Akola Municipal Corporation.
-The user is asking a question in {l}.
-Categorize their intent into one of the following:
-- DEMAND: user wants to see their tax demand, balance, or how much they need to pay.
-- RECEIPT: user wants to see previous receipts or history.
-- PAYMENT: user wants to pay online.
-- NOTICE: user wants to download their tax notice.
-- DETAILS: user wants to see their property information (address, owner name, description, ward, etc).
-- GENERAL: anything else (greetings, general questions).
+The user is in {userRole} role and asking in {l}.
+{roleSpecificInstructions}
 
-Respond strictly in valid JSON format:
+Categorize their intent:
+- DEMAND: user wants to see tax demand/balance.
+- RECEIPT: user wants to see previous receipts.
+- PAYMENT: user wants to pay online.
+- NOTICE: user wants to download tax notice.
+- DETAILS: user wants to see property info.
+- ANALYSIS: (Officer only) user wants collection reports, ward-wise distribution, or statistical analysis.
+- GENERAL: greetings or general help.
+
+Respond strictly in JSON:
 {{
-  ""intent"": ""DEMAND|RECEIPT|PAYMENT|NOTICE|DETAILS|GENERAL"",
-  ""reply"": ""If GENERAL, provide a helpful polite response in {l}. Otherwise leave empty.""
+  ""intent"": ""DEMAND|RECEIPT|PAYMENT|NOTICE|DETAILS|ANALYSIS|GENERAL"",
+  ""reply"": ""Helpful response in {l}""
 }}";
 
                 var completion = await chatClient.CompleteChatAsync(new OpenAI.Chat.ChatMessage[]

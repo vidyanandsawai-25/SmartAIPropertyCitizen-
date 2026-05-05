@@ -16,12 +16,14 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-type Step = 'lang' | 'search' | 'otp' | 'chat';
+type Step = 'lang' | 'role' | 'search' | 'otp' | 'chat';
+type UserRole = 'citizen' | 'officer';
 
 export default function SmartAIPage() {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>('lang');
   const [lang, setLang] = useState<Language>('mr');
+  const [role, setRole] = useState<UserRole>('citizen');
   const [discounts, setDiscounts] = useState<any[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -58,6 +60,12 @@ export default function SmartAIPage() {
 
   const handleLanguageSelect = (l: Language) => {
     setLang(l);
+    setStep('role');
+  };
+
+  const handleRoleSelect = (r: UserRole) => {
+    setRole(r);
+    // If officer, we might eventually need a different login, but for now go to search
     setStep('search');
   };
 
@@ -105,22 +113,16 @@ export default function SmartAIPage() {
     }
   };
 
-  const handleSendMessage = async (msg?: string) => {
-    const text = msg || chatInput;
+  const handleSendMessage = async (text: string) => {
     if (!text) return;
-    if (!msg) setChatInput('');
-    
-    setChatMessages(prev => [...prev, { role: 'user', text }]);
+    const userMsg = { role: 'user' as const, text };
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatInput('');
     setIsLoading(true);
 
     try {
-      const res = await citizenApi.chat(text, sessionId, lang);
-      setChatMessages(prev => [...prev, { 
-        role: 'bot', 
-        text: res.responseText, 
-        data: res.data,
-        links: { pay: res.paymentUrl, doc: res.downloadUrl }
-      }]);
+      const res = await citizenApi.chat(text, sessionId, lang, role);
+      setChatMessages(prev => [...prev, { role: 'bot', text: res.responseText, data: res.data, links: { payment: res.paymentUrl, download: res.downloadUrl } }]);
     } catch (e) {
       console.error(e);
     } finally {
@@ -206,7 +208,48 @@ export default function SmartAIPage() {
               </motion.div>
             )}
 
-            {/* Step: Search */}
+            {/* Step: Role Selection */}
+            {step === 'role' && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-black text-slate-800 tracking-tight">{i18n[lang].roleSelect}</h2>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <button
+                    onClick={() => handleRoleSelect('citizen')}
+                    className="group relative flex items-center gap-5 p-6 bg-white border-2 border-slate-100 rounded-3xl hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 text-left"
+                  >
+                    <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                      <User size={32} strokeWidth={2.5} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-black text-slate-800 group-hover:text-blue-700 transition-colors">{i18n[lang].roleCitizen}</h3>
+                    </div>
+                    <ChevronRight className="text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                  </button>
+
+                  <button
+                    onClick={() => handleRoleSelect('officer')}
+                    className="group relative flex items-center gap-5 p-6 bg-white border-2 border-slate-100 rounded-3xl hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 text-left"
+                  >
+                    <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                      <ShieldCheck size={32} strokeWidth={2.5} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-black text-slate-800 group-hover:text-indigo-700 transition-colors">{i18n[lang].roleOfficer}</h3>
+                    </div>
+                    <ChevronRight className="text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step: Property Search */}
             {step === 'search' && (
               <motion.div 
                 key="search"

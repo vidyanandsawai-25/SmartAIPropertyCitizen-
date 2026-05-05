@@ -66,8 +66,9 @@ namespace SmartAIPropertyCitizen.Api.Core.Domain
     public class ChatRequest
     {
         public string Message { get; set; } = string.Empty;
-        public string SessionId { get; set; } = string.Empty;
-        public string Language { get; set; } = "mr";
+        public string? SessionId { get; set; }
+        public string? Language { get; set; }
+        public string? Role { get; set; }
     }
 
     public class ChatResponse

@@ -40,7 +40,10 @@ export const i18n = {
     thFlat: "दुकान/इमारत क्र.",
     thBillDate: "बिल वाटप दिनांक",
     thDescription: "मालमत्तेचे वर्णन",
-    thMobile: "मोबाईल क्र."
+    thMobile: "मोबाईल क्र.",
+    roleCitizen: "नागरिक",
+    roleOfficer: "अधिकारी / Admin",
+    roleSelect: "कृपया आपली भूमिका निवडा"
   },
   hi: {
     name: "अकोला नगर निगम, अकोला",
@@ -83,7 +86,10 @@ export const i18n = {
     thFlat: "दुकान/भवन क्र.",
     thBillDate: "बिल वितरण तिथि",
     thDescription: "संपत्ति विवरण",
-    thMobile: "मोबाइल क्र."
+    thMobile: "मोबाइल क्र.",
+    roleCitizen: "नागरिक",
+    roleOfficer: "अधिकारी / Admin",
+    roleSelect: "कृपया अपनी भूमिका चुनें"
   },
   en: {
     name: "Akola Municipal Corporation, Akola",
@@ -126,7 +132,10 @@ export const i18n = {
     thFlat: "Flat/Shop No.",
     thBillDate: "Bill Distribution Date",
     thDescription: "Property Description",
-    thMobile: "Mobile No."
+    thMobile: "Mobile No.",
+    roleCitizen: "Citizen",
+    roleOfficer: "Officer / Admin",
+    roleSelect: "Please select your role"
   },
 };
 
