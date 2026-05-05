@@ -68,5 +68,13 @@ namespace SmartAIPropertyCitizen.Api.Application.Services
 
             return await _sqlRepository.QueryAsync<ReceiptRow>(sql, new { OwnerID = ownerId });
         }
+        public async Task<PropertyFullDetails?> GetPropertyDetailsAsync(int ownerId)
+        {
+            var results = await _sqlRepository.ExecuteStoredProcedureAsync<PropertyFullDetails>(
+                "[Payment].[Prc_SearchProperty]",
+                new { Flag = "OwnerID", OwnerID = ownerId.ToString() }
+            );
+            return results.FirstOrDefault();
+        }
     }
 }

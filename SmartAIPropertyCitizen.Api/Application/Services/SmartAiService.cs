@@ -18,6 +18,7 @@ namespace SmartAIPropertyCitizen.Api.Application.Services
                 ["ReceiptFound"] = "येथे आपल्या मागील पावत्यांची यादी आहे:",
                 ["PaymentLink"] = "आपण खालील लिंकवर क्लिक करून ऑनलाइन पेमेंट करू शकता:",
                 ["NoticeLink"] = "आपण खालील लिंकवरून नोटीस डाउनलोड करू शकता:",
+                ["PropertyDetails"] = "येथे आपल्या मालमत्तेचा तपशील आहे:",
                 ["DefaultHelp"] = "क्षमस्व, मी तुम्हाला आज अकोला मालमत्ता कराबाबत कशी मदत करू शकतो?",
                 ["LoginRequired"] = "कृपया प्रथम लॉगइन करा.",
                 ["NoRecords"] = "कोणतीही मालमत्ता नोंद सापडली नाही."
@@ -27,6 +28,7 @@ namespace SmartAIPropertyCitizen.Api.Application.Services
                 ["ReceiptFound"] = "यहाँ आपकी पिछली रसीदों की सूची है:",
                 ["PaymentLink"] = "आप नीचे दिए गए लिंक पर क्लिक करके ऑनलाइन भुगतान कर सकते हैं:",
                 ["NoticeLink"] = "आप नीचे दिए गए लिंक से नोटिस डाउनलोड कर सकते हैं:",
+                ["PropertyDetails"] = "यहाँ आपकी संपत्ति का विवरण है:",
                 ["DefaultHelp"] = "क्षमा करें, मैं आपकी अकोला संपत्ति कर में कैसे सहायता कर सकता हूँ?",
                 ["LoginRequired"] = "कृपया पहले लॉगिन करें।",
                 ["NoRecords"] = "कोई संपत्ति रिकॉर्ड नहीं मिला।"
@@ -36,6 +38,7 @@ namespace SmartAIPropertyCitizen.Api.Application.Services
                 ["ReceiptFound"] = "Here is the list of your previous receipts:",
                 ["PaymentLink"] = "You can make an online payment by clicking the link below:",
                 ["NoticeLink"] = "You can download the notice from the link below:",
+                ["PropertyDetails"] = "Here are your property details:",
                 ["DefaultHelp"] = "How can I help you with your Akola Property Tax today?",
                 ["LoginRequired"] = "Please login first.",
                 ["NoRecords"] = "No property records found."
@@ -84,11 +87,12 @@ Categorize their intent into one of the following:
 - RECEIPT: user wants to see previous receipts or history.
 - PAYMENT: user wants to pay online.
 - NOTICE: user wants to download their tax notice.
+- DETAILS: user wants to see their property information (address, owner name, description, ward, etc).
 - GENERAL: anything else (greetings, general questions).
 
 Respond strictly in valid JSON format:
 {{
-  ""intent"": ""DEMAND|RECEIPT|PAYMENT|NOTICE|GENERAL"",
+  ""intent"": ""DEMAND|RECEIPT|PAYMENT|NOTICE|DETAILS|GENERAL"",
   ""reply"": ""If GENERAL, provide a helpful polite response in {l}. Otherwise leave empty.""
 }}";
 
@@ -118,6 +122,7 @@ Respond strictly in valid JSON format:
                 else if (message.Contains("receipt") || message.Contains("पावती") || message.Contains("रसीद")) intent = "RECEIPT";
                 else if (message.Contains("pay") || message.Contains("payment") || message.Contains("भरणा") || message.Contains("भरायचे")) intent = "PAYMENT";
                 else if (message.Contains("notice") || message.Contains("सूचना") || message.Contains("नोटीस")) intent = "NOTICE";
+                else if (message.Contains("detail") || message.Contains("address") || message.Contains("पत्ता") || message.Contains("तपशील")) intent = "DETAILS";
             }
 
             // 3. Execute Intent
@@ -147,6 +152,13 @@ Respond strictly in valid JSON format:
                 case "NOTICE":
                     response.DownloadUrl = $"https://akolamc.in/Download/Index?B={session.UpicNo}";
                     response.ResponseText = i18n[l]["NoticeLink"];
+                    break;
+                
+                case "DETAILS":
+                    var details = await _propertyTaxService.GetPropertyDetailsAsync(ownerId);
+                    response.Data = details;
+                    response.ResponseText = i18n[l]["PropertyDetails"];
+                    if (details == null) response.ResponseText = i18n[l]["NoRecords"];
                     break;
 
                 default:

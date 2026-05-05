@@ -14,6 +14,19 @@ namespace SmartAIPropertyCitizen.Api.Core.Domain
         public string UnmaskedMobileNo { get; set; } = string.Empty;
     }
 
+    public class PropertyFullDetails
+    {
+        public int OwnerId { get; set; }
+        public string NewWardNo { get; set; } = string.Empty;
+        public string NewPropertyNo { get; set; } = string.Empty;
+        public string PropertyNo { get; set; } = string.Empty;
+        public string OwnerNameMarathi { get; set; } = string.Empty;
+        public string OwnerNameEnglish { get; set; } = string.Empty;
+        public string UpicNo { get; set; } = string.Empty;
+        public string MarathiOwnerPatta { get; set; } = string.Empty;
+        public string PropertyDescription { get; set; } = string.Empty;
+    }
+
     public class HeadwiseTaxRow
     {
         public string HeadName { get; set; } = string.Empty;

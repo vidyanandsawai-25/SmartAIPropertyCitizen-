@@ -13,6 +13,7 @@ export const i18n = {
     showReceipts: "मागील पावती दाखवा",
     onlinePayment: "ऑनलाइन पेमेंट",
     downloadNotice: "नोटीस डाउनलोड करा",
+    showDetails: "मालमत्ता तपशील पहा",
     chatPlaceholder: "येथे विचारा...",
     errorOtp: "चुकीचा OTP. कृपया पुन्हा प्रयत्न करा.",
     noResults: "निकाल सापडला नाही.",
@@ -25,7 +26,12 @@ export const i18n = {
     thAmount: "रक्कम",
     thDate: "देय दिनांक",
     thResource: "पेमेंट रिसोर्स",
-    thMode: "देय प्रकार"
+    thMode: "देय प्रकार",
+    thOwner: "मालकाचे नाव",
+    thAddress: "पत्ता",
+    thWard: "वार्ड",
+    thPropertyNo: "मालमत्ता क्र.",
+    thUpic: "UPIC क्र."
   },
   hi: {
     name: "अकोला नगर निगम, अकोला",
@@ -41,6 +47,7 @@ export const i18n = {
     showReceipts: "पिछली रसीद दिखाएं",
     onlinePayment: "ऑनलाइन भुगतान",
     downloadNotice: "नोटिस डाउनलोड करें",
+    showDetails: "संपत्ति विवरण देखें",
     chatPlaceholder: "यहाँ पूछें...",
     errorOtp: "गलत OTP। कृपया पुनः प्रयास करें।",
     noResults: "कोई परिणाम नहीं मिला।",
@@ -53,7 +60,12 @@ export const i18n = {
     thAmount: "रकम",
     thDate: "देय दिनांक",
     thResource: "पेमेंट रिसोर्स",
-    thMode: "देय प्रकार"
+    thMode: "देय प्रकार",
+    thOwner: "मालिक का नाम",
+    thAddress: "पता",
+    thWard: "वार्ड",
+    thPropertyNo: "संपत्ति क्र.",
+    thUpic: "UPIC क्र."
   },
   en: {
     name: "Akola Municipal Corporation, Akola",
@@ -69,6 +81,7 @@ export const i18n = {
     showReceipts: "Show Previous Receipts",
     onlinePayment: "Online Payment",
     downloadNotice: "Download Notice",
+    showDetails: "Show Property Details",
     chatPlaceholder: "Ask here...",
     errorOtp: "Invalid OTP. Please try again.",
     noResults: "No results found.",
@@ -81,7 +94,12 @@ export const i18n = {
     thAmount: "Amount",
     thDate: "Date",
     thResource: "Resource",
-    thMode: "Mode"
+    thMode: "Mode",
+    thOwner: "Owner Name",
+    thAddress: "Address",
+    thWard: "Ward",
+    thPropertyNo: "Property No.",
+    thUpic: "UPIC No."
   },
 };
 

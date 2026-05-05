@@ -18,6 +18,7 @@ namespace SmartAIPropertyCitizen.Api.Core.Interfaces
     {
         Task<IEnumerable<HeadwiseTaxRow>> GetHeadwiseTaxDetailsAsync(int ownerId);
         Task<IEnumerable<ReceiptRow>> GetPreviousReceiptsAsync(int ownerId);
+        Task<PropertyFullDetails?> GetPropertyDetailsAsync(int ownerId);
     }
 
     public interface ISmartAiService
