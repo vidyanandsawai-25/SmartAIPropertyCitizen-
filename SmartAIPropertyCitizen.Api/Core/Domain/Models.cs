@@ -25,6 +25,14 @@ namespace SmartAIPropertyCitizen.Api.Core.Domain
         public string UpicNo { get; set; } = string.Empty;
         public string MarathiOwnerPatta { get; set; } = string.Empty;
         public string PropertyDescription { get; set; } = string.Empty;
+        public string OldPropertyNo { get; set; } = string.Empty;
+        public string MobileNo { get; set; } = string.Empty;
+        public string OccupierNameMarathi { get; set; } = string.Empty;
+        public string MarathiOwnerDukanImarateNav { get; set; } = string.Empty;
+        public string BillDistributionDate { get; set; } = string.Empty;
+        public string MarathiSocietyName { get; set; } = string.Empty;
+        public string NewPlotNo { get; set; } = string.Empty;
+        public string FlatOrShopNo { get; set; } = string.Empty;
     }
 
     public class HeadwiseTaxRow
