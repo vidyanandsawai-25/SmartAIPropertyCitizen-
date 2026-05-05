@@ -31,7 +31,16 @@ export const i18n = {
     thAddress: "पत्ता",
     thWard: "वार्ड",
     thPropertyNo: "मालमत्ता क्र.",
-    thUpic: "UPIC क्र."
+    thUpic: "UPIC क्र.",
+    thOldProperty: "जुना मालमत्ता क्र.",
+    thOccupier: "भोगवटादाराचे नाव",
+    thBuilding: "दुकान/इमारतीचे नाव",
+    thSociety: "सोसायटीचे नाव",
+    thPlot: "प्लॉट/गाळा क्र.",
+    thFlat: "दुकान/इमारत क्र.",
+    thBillDate: "बिल वाटप दिनांक",
+    thDescription: "मालमत्तेचे वर्णन",
+    thMobile: "मोबाईल क्र."
   },
   hi: {
     name: "अकोला नगर निगम, अकोला",
@@ -65,7 +74,16 @@ export const i18n = {
     thAddress: "पता",
     thWard: "वार्ड",
     thPropertyNo: "संपत्ति क्र.",
-    thUpic: "UPIC क्र."
+    thUpic: "UPIC क्र.",
+    thOldProperty: "पुराना संपत्ति क्र.",
+    thOccupier: "कब्जाधारी का नाम",
+    thBuilding: "दुकान/भवन का नाम",
+    thSociety: "सोसायटी का नाम",
+    thPlot: "प्लॉट/गाला क्र.",
+    thFlat: "दुकान/भवन क्र.",
+    thBillDate: "बिल वितरण तिथि",
+    thDescription: "संपत्ति विवरण",
+    thMobile: "मोबाइल क्र."
   },
   en: {
     name: "Akola Municipal Corporation, Akola",
@@ -99,7 +117,16 @@ export const i18n = {
     thAddress: "Address",
     thWard: "Ward",
     thPropertyNo: "Property No.",
-    thUpic: "UPIC No."
+    thUpic: "UPIC No.",
+    thOldProperty: "Old Property No.",
+    thOccupier: "Occupier Name",
+    thBuilding: "Building Name",
+    thSociety: "Society Name",
+    thPlot: "Plot No.",
+    thFlat: "Flat/Shop No.",
+    thBillDate: "Bill Distribution Date",
+    thDescription: "Property Description",
+    thMobile: "Mobile No."
   },
 };
 

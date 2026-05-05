@@ -408,31 +408,80 @@ export default function SmartAIPage() {
                           </div>
                         )}
 
-                        {/* Property Details Data (Vertical) */}
+                        {/* Property Details Data (3-Column Grid) */}
                         {msg.data && !Array.isArray(msg.data) && (
-                          <div className="mt-4 bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-                            <div className="p-4 space-y-3">
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thOwner}</span>
-                                <span className="text-sm text-slate-700 font-bold">{msg.data.ownerNameMarathi || msg.data.ownerNameEnglish}</span>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thAddress}</span>
-                                <span className="text-sm text-slate-600 font-medium">{msg.data.marathiOwnerPatta || msg.data.propertyDescription}</span>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
+                          <div className="mt-4 bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-md">
+                            <div className="p-5 space-y-6">
+                              {/* Row 1: UPIC, Property No, Description */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="flex flex-col gap-1">
-                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thWard}</span>
-                                  <span className="text-sm text-slate-600 font-medium">{msg.data.newWardNo}</span>
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thUpic}</span>
+                                  <span className="text-sm text-blue-700 font-black">{msg.data.upicNo}</span>
                                 </div>
                                 <div className="flex flex-col gap-1">
                                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thPropertyNo}</span>
-                                  <span className="text-sm text-slate-600 font-medium">{msg.data.propertyNo}</span>
+                                  <span className="text-sm text-blue-900 font-black">{msg.data.propertyNo}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thDescription}</span>
+                                  <span className="text-sm text-indigo-700 font-bold">{msg.data.propertyDescription}</span>
                                 </div>
                               </div>
-                              <div className="flex flex-col gap-1 pt-2 border-t border-slate-50">
-                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thUpic}</span>
-                                <span className="text-sm text-blue-600 font-bold">{msg.data.upicNo}</span>
+
+                              {/* Row 2: Owner, Old Prop, Mobile */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-50">
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thOwner}</span>
+                                  <span className="text-sm text-slate-700 font-bold">{msg.data.ownerNameMarathi || msg.data.ownerNameEnglish}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thOldProperty}</span>
+                                  <span className="text-sm text-slate-600 font-medium">{msg.data.oldPropertyNo || '-'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thMobile}</span>
+                                  <span className="text-sm text-slate-600 font-medium">{msg.data.mobileNo || '-'}</span>
+                                </div>
+                              </div>
+
+                              {/* Row 3: Occupier, Building, Bill Date */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-50">
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thOccupier}</span>
+                                  <span className="text-sm text-slate-600 font-medium">{msg.data.occupierNameMarathi || '-'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thBuilding}</span>
+                                  <span className="text-sm text-slate-600 font-medium">{msg.data.marathiOwnerDukanImarateNav || '-'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thBillDate}</span>
+                                  <span className="text-sm text-slate-600 font-medium">{msg.data.billDistributionDate || '-'}</span>
+                                </div>
+                              </div>
+
+                              {/* Row 4: Society, Plot, Flat */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-50">
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thSociety}</span>
+                                  <span className="text-sm text-slate-600 font-medium">{msg.data.marathiSocietyName || '-'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thPlot}</span>
+                                  <span className="text-sm text-slate-600 font-medium">{msg.data.newPlotNo || '-'}</span>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thFlat}</span>
+                                  <span className="text-sm text-slate-600 font-medium">{msg.data.flatOrShopNo || '-'}</span>
+                                </div>
+                              </div>
+
+                              {/* Row 5: Address */}
+                              <div className="pt-4 border-t border-slate-50">
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{i18n[lang].thAddress}</span>
+                                  <span className="text-sm text-slate-600 font-medium leading-relaxed">{msg.data.marathiOwnerPatta || '-'}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -464,19 +513,21 @@ export default function SmartAIPage() {
                 <div className="p-4 px-6 space-y-4 border-t border-slate-50 bg-white">
                   <div className="flex flex-col gap-2">
                     {/* Full width primary button */}
-                    <button 
-                      onClick={() => handleSendMessage(i18n[lang].showDemand)}
-                      className="w-full flex justify-center items-center gap-2 bg-blue-50 text-blue-700 px-4 py-3 rounded-2xl text-[11px] font-black border border-blue-100 hover:bg-blue-100 transition-colors uppercase tracking-wider shadow-sm"
-                    >
-                      <FileText size={14} /> {i18n[lang].showDemand}
-                    </button>
-                    
-                    <button 
-                      onClick={() => handleSendMessage(i18n[lang].showDetails)}
-                      className="w-full flex justify-center items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-3 rounded-2xl text-[11px] font-black border border-indigo-100 hover:bg-indigo-100 transition-colors uppercase tracking-wider shadow-sm"
-                    >
-                      <MapPin size={14} /> {i18n[lang].showDetails}
-                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        onClick={() => handleSendMessage(i18n[lang].showDemand)}
+                        className="w-full flex justify-center items-center gap-2 bg-blue-50 text-blue-700 px-4 py-3 rounded-2xl text-[11px] font-black border border-blue-100 hover:bg-blue-100 transition-colors uppercase tracking-wider shadow-sm"
+                      >
+                        <FileText size={14} /> {i18n[lang].showDemand}
+                      </button>
+                      
+                      <button 
+                        onClick={() => handleSendMessage(i18n[lang].showDetails)}
+                        className="w-full flex justify-center items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-3 rounded-2xl text-[11px] font-black border border-indigo-100 hover:bg-indigo-100 transition-colors uppercase tracking-wider shadow-sm"
+                      >
+                        <MapPin size={14} /> {i18n[lang].showDetails}
+                      </button>
+                    </div>
 
                     
                     {/* Grid for secondary buttons */}
